@@ -54,6 +54,7 @@ def runner(stop_event,name):
     m = MyoRaw()
     with logger(name) as a:
         m.add_emg_handler(a.callback)
+        m.connect()
         while not stop_event.is_set():
             m.run(1)
         m.disconnect()
@@ -74,7 +75,7 @@ def main(stdscr,name):
     global t_stop
     t_stop = threading.Event()
     t_stop.set()
-    t = threading.Thread(target=runner, args=(t_stop,name))
+    # t = threading.Thread(target=runner, args=(t_stop,name))
     k = "paused"
     printToScreen(stdscr,k)
 
@@ -90,8 +91,8 @@ def main(stdscr,name):
                     print("\nrestarting logger...")
                     t.join()
                 # if stopped -> just start
-                t = threading.Thread(target=runner,args=(t_stop,name+"_"+str(k)))
                 t_stop.clear()
+                t = threading.Thread(target=runner,args=(t_stop,name+"_"+str(k)))
                 t.start()
             if c == 112:
                 k = "paused"
