@@ -202,11 +202,11 @@ class MyoRaw(object):
         self.bt.disconnect(2)
 
         ## start scanning
-        print('scanning...')
+        # print('scanning...')
         self.bt.discover()
         while True:
             p = self.bt.recv_packet()
-            print('scan response:', p)
+            # print('scan response:', p)
 
             if p.payload.endswith(b'\x06\x42\x48\x12\x4A\x7F\x2C\x48\x47\xB9\xDE\x04\xA9\x01\x00\x06\xD5'):
                 addr = list(multiord(p.payload[2:8]))
@@ -221,7 +221,7 @@ class MyoRaw(object):
         ## get firmware version
         fw = self.read_attr(0x17)
         _, _, _, _, v0, v1, v2, v3 = unpack('BHBBHHHH', fw.payload)
-        print('firmware version: %d.%d.%d.%d' % (v0, v1, v2, v3))
+        # print('firmware version: %d.%d.%d.%d' % (v0, v1, v2, v3))
 
         self.old = (v0 == 0)
 
@@ -256,7 +256,7 @@ class MyoRaw(object):
 
         else:
             name = self.read_attr(0x03)
-            print('device name: %s' % name.payload)
+            # print('device name: %s' % name.payload)
 
             ## enable IMU data
             self.write_attr(0x1d, b'\x01\x00')
@@ -440,11 +440,11 @@ if __name__ == '__main__':
     m = MyoRaw(sys.argv[1] if len(sys.argv) >= 2 else None)
 
     def proc_emg(emg, moving, times=[]):
-        if HAVE_PYGAME:
+        # if HAVE_PYGAME:
             ## update pygame display
-            plot(scr, [e / 2000. for e in emg])
-        else:
-            print(emg)
+            # plot(scr, [e / 2000. for e in emg])
+        # else:
+        print(emg)
 
         ## print framerate of received data
         times.append(time.time())
