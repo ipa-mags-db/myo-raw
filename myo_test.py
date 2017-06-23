@@ -15,11 +15,11 @@ def callback(emg, moving, times=[]):
     counter += 1
 
     if counter > 25:
-        m = np.mean(buffer)
-        if m > 0.5:
-            print("Not Gripping with ", m)
+        a = np.mean(np.vstack(buffer),axis=0)
+        if a[0] > a[1]:
+            print("LOSE")
         else:
-            print("Gripping with ", m)
+            print("GRIP")
         counter = 0
 
     if len(buffer) > 100:
