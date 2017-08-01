@@ -247,7 +247,7 @@ class MyoRaw(object):
             C = 1000
             emg_hz = 50
             ## strength of low-pass filtering of EMG data
-            emg_smooth = 100
+            emg_smooth = 10
 
             imu_hz = 50
 
@@ -288,7 +288,7 @@ class MyoRaw(object):
                 gyro = vals[7:10]
                 self.on_imu(quat, acc, gyro)
             elif attr == 0x23:
-                typ, val, xdir = unpack('3B', pay)
+                typ, val, xdir, _, _, _ = unpack('6B', pay)
 
                 if typ == 1: # on arm
                     self.on_arm(Arm(val), XDirection(xdir))
@@ -301,6 +301,8 @@ class MyoRaw(object):
 
         self.bt.add_handler(handle_data)
 
+    def power_off(self):
+        self.write_attr(0x19, b'\x04\x00')
 
     def write_attr(self, attr, val):
         if self.conn is not None:
@@ -321,7 +323,7 @@ class MyoRaw(object):
         '''
 
         self.write_attr(0x28, b'\x01\x00')
-        self.write_attr(0x19, b'\x01\x03\x01\x01\x00')
+        #self.write_attr(0x19, b'\x01\x03\x01\x01\x00')
         self.write_attr(0x19, b'\x01\x03\x01\x01\x01')
 
     def mc_start_collection(self):
@@ -363,7 +365,7 @@ class MyoRaw(object):
         self.write_attr(0x19, b'\x01\x03\x01\x01\x01')
 
     def vibrate(self, length):
-        if length in xrange(1, 4):
+        if length in range(1, 4):
             ## first byte tells it to vibrate; purpose of second byte is unknown
             self.write_attr(0x19, pack('3B', 3, 1, length))
 
