@@ -41,7 +41,7 @@ class Threader(PyQt5.QtCore.QThread):
     classProbs_sig = PyQt5.QtCore.pyqtSignal(list)
     bufferSize_sig = PyQt5.QtCore.pyqtSignal(int)
     breakFlag_sig = PyQt5.QtCore.pyqtSignal()
-    bufferSize = 10
+    bufferSize = 50
     breakFlag = False
 
     def __init__(self,name):
@@ -69,7 +69,7 @@ class Threader(PyQt5.QtCore.QThread):
             while not self.breakFlag:
                 self.CF.run()
                 counter += 1
-                if counter > 30:
+                if counter > 10:
                     self.classProbs_sig.emit(self.CF.classify())
                     counter = 0
 
@@ -123,6 +123,7 @@ class GripGUI:
         self.slider.setMinimum(1)
         self.slider.valueChanged.connect(self._onSliderChange)
         self.slider.setTickInterval(5)
+        self.slider.setValue(50)
 
         # Layout stuff
         self.vbox0 = PyQt5.QtWidgets.QVBoxLayout()
@@ -142,7 +143,7 @@ class GripGUI:
         self.hbox0_0.addWidget(self.gripbar)
         self.hbox0_0.addWidget(self.noLabel)
 
-        self.hbox0_1.addLayout(self.vbox0_1_0)
+        #self.hbox0_1.addLayout(self.vbox0_1_0)
         self.hbox0_1.addLayout(self.vbox0_1_1)
 
         self.vbox0_1_0.addWidget(self.chooseButton)
@@ -169,7 +170,7 @@ class GripGUI:
     def _onStartButtonClick(self):
         logging.debug('Start Button Clicked')
         if self._connectState:
-            self.startButton.setText("Start")
+            self.startButton.setText("Exit")
             self.workerThread.breakFlag_sig.emit()
             self._connectState = False
             del self.workerThread
