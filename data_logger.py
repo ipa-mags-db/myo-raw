@@ -5,6 +5,7 @@ import os
 import sys
 import threading
 import curses
+from datetime import datetime
 
 class logger:
     def __init__(self,name, bufferSize=100):
@@ -15,12 +16,22 @@ class logger:
         except Exception:
             pass
         self.fileName =  "data/" + name + "-" + timestr
+        self.fileNameIMU = "data/" + name + "imu-" + timestr
+
         with open(self.fileName,'w') as csvfile:
             writer = csv.writer(csvfile,delimiter='\t', quotechar='\'',quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(  ["0", "1", "2", "3", "4", "5", "6","7"] )
+            writer.writerow(  ["t","EMG0", "EMG1", "EMG2", "EMG3", "EMG4", "EMG5", "EMG6","EMG7"] )
+        with open(self.fileNameIMU,'w') as csvfile:
+            writer = csv.writer(csvfile,delimiter='\t', quotechar='\'',quoting=csv.QUOTE_MINIMAL)
+            writer.writerow(  ["t","QX_IMU", "QY_IMU", "QZ_IMU", "QW_IMU" ,"ACCX", "ACCY", "ACCZ","GX", "GY", "GZ" ] )
         self.bufferSize = bufferSize
+        self.bufferSizeIMU = bufferSize
+
         self.buffer = []
+        self.bufferIMU = []
+
         self.count = 0
+        self.countIMU = 0
 
     def __enter__(self):
         return self
@@ -35,8 +46,11 @@ class logger:
                 writer.writerow(row)
         print ("#####################\n")
 
+    def getTimeStamp(self):
+        return datetime.now().timestamp()
+
     def callback(self,data,moving,times=[]):
-        self.buffer.append(data)
+        self.buffer.append([self.getTimeStamp(),*data])
         self.count +=1
         if self.count > self.bufferSize:
             # reset counter
@@ -50,10 +64,26 @@ class logger:
                 # clear buffer
                 self.buffer = []
 
+    def callback_imu(self, quat, acc, gyro):
+        self.bufferIMU.append([self.getTimeStamp(),*quat,*acc,*gyro])
+        self.countIMU +=1
+        if self.countIMU > self.bufferSizeIMU:
+            # reset counter
+            self.countIMU = 0
+            # write new data and append it
+            with open(self.fileNameIMU,'a') as csvfile:
+                writer = csv.writer(csvfile,delimiter='\t', quotechar='\'',quoting=csv.QUOTE_MINIMAL)
+                for row in self.bufferIMU:
+                    writer.writerow(row)
+
+                # clear buffer
+                self.bufferIMU = []
+
 def runner(stop_event,name):
     m = MyoRaw()
     with logger(name) as a:
         m.add_emg_handler(a.callback)
+        m.add_imu_handler(a.callback_imu)
         m.connect()
         while not stop_event.is_set():
             m.run(1)
