@@ -182,6 +182,7 @@ class MyoRaw(object):
         self.imu_handlers = []
         self.arm_handlers = []
         self.pose_handlers = []
+        self.battery_handlers = []
 
     def detect_tty(self):
         for p in comports():
@@ -296,6 +297,9 @@ class MyoRaw(object):
                     self.on_arm(Arm.UNKNOWN, XDirection.UNKNOWN)
                 elif typ == 3: # pose
                     self.on_pose(Pose(val))
+            elif attr == 0x11:
+                battery_level = ord(pay)
+                self.on_battery(battery_level)
             else:
                 print('data with unknown attr: %02X %s' % (attr, p))
 
@@ -382,10 +386,17 @@ class MyoRaw(object):
     def add_arm_handler(self, h):
         self.arm_handlers.append(h)
 
+    def add_battery_handler(self, h):
+        self.battery_handlers.append(h)
+
 
     def on_emg(self, emg, moving):
         for h in self.emg_handlers:
             h(emg, moving)
+
+    def on_battery(self, battery_level):
+        for h in self.battery_handlers:
+            h(battery_level)
 
     def on_imu(self, quat, acc, gyro):
         for h in self.imu_handlers:
