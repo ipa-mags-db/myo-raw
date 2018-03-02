@@ -1,3 +1,9 @@
+"""
+Gui to evaluate grip classification online
+
+very wip
+"""
+
 import PyQt5.QtGui
 import PyQt5.QtCore
 import PyQt5.QtWidgets
@@ -178,7 +184,8 @@ class GripGUI:
         elif not self._connectState:
             #name = "/home/myo/models/network_1_194_178_9811.h5"
             #name = "/home/myo/models/network_1_175_75_9848.h5"
-            name = "/home/myo/models/network_1_100_50_10000.h5"
+            #name = "/home/myo/models/network_1_100_50_10000.h5"
+            name = '/home/myo/models/network_1_100_50_9791.h5'
             self.startButton.setText("Stop")
             self.workerThread = Threader(name)
             self.workerThread.classProbs_sig.connect(self._updateBar)
