@@ -89,28 +89,60 @@ def runner(stop_event,name):
             m.run(1)
         m.disconnect()
 
-def printToScreen(stdscr,string):
-    stdscr.clear()
-    stdscr.refresh()
-    stdscr.move(0,0)
-    stdscr.addstr("Command List\n")
-    stdscr.addstr("-------------\n")
-    stdscr.addstr("NumberKeys - Start new logger appended with <key>\n")
-    stdscr.addstr("P          - Pause all logging\n")
-    stdscr.addstr("ESC        - Stop logger & return to console\n")
-    stdscr.addstr("-------------\n\n")
-    stdscr.addstr(str(string)+"\n\n\n")
+def timedRunner(stop_event,name,timeout):
+    m = MyoRaw()
+    with logger(name) as a:
+        m.add_emg_handler(a.callback)
+        m.add_imu_handler(a.callback_imu)
+        m.connect()
+        startTime = time.time()
+        while not stop_event.is_set() and time.time() < (startTime + timeout):
+            m.run(1)
+        stop_event.set()
+        m.disconnect()
 
-def main(stdscr,name):
+class printer:
+    def __init__(self,stdscr,name,recordTime):
+        self.stdscr = stdscr
+        self.name = name
+        self.recordTime = recordTime
+
+    def printToScreen(self,string):
+        self.stdscr.clear()
+        self.stdscr.refresh()
+        self.stdscr.move(0,0)
+
+        self.stdscr.addstr("DataName: "+str(self.name) + "\n" )
+        self.stdscr.addstr("RecordingTime: "+str(self.recordTime) + "\n" )
+        self.stdscr.addstr("Command List\n")
+        self.stdscr.addstr("-------------\n")
+        self.stdscr.addstr("NumberKeys - Start new logger appended with <key>\n")
+        self.stdscr.addstr("P          - Pause all logging\n")
+        self.stdscr.addstr("ESC        - Stop logger & return to console\n")
+        self.stdscr.addstr("-------------\n\n")
+        self.stdscr.addstr(str(string)+"\n\n\n")
+
+def main(stdscr,name,timeout):
     global t_stop
     t_stop = threading.Event()
     t_stop.set()
     # t = threading.Thread(target=runner, args=(t_stop,name))
+
+    stdscr.timeout(250)
+
     k = "paused"
-    printToScreen(stdscr,k)
+    pp = printer(stdscr,name,timeout)
+
+    pp.printToScreen(k)
+
+    t_stop_before = t_stop.is_set()
+
 
     while True:
+
+
         c = stdscr.getch()
+
         if c != -1:
             if c >= 48 and c <= 57:
                 k = c - 48
@@ -122,10 +154,13 @@ def main(stdscr,name):
                     t.join()
                 # if stopped -> just start
                 t_stop.clear()
-                t = threading.Thread(target=runner,args=(t_stop,name+"_"+str(k)))
-                t.start()
+                if timeout is None:
+                    t = threading.Thread(target=runner,args=(t_stop,name+"_"+str(k)))
+                    t.start()
+                else:
+                    t = threading.Thread(target=timedRunner,args=(t_stop,name+"_"+str(k),timeout) )
+                    t.start()
             if c == 112:
-                k = "paused"
                 if not t_stop.is_set():
                     t_stop.set()
                     t.join()
@@ -135,15 +170,26 @@ def main(stdscr,name):
                     t.join()
                 return
 
-        printToScreen(stdscr,k)
+            pp.printToScreen(k)
+
+        elif t_stop.is_set() != t_stop_before and t_stop.is_set():
+            k = "paused"
+            pp.printToScreen(k)
+
+        t_stop_before = t_stop.is_set()
 
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
+    if len(sys.argv) > 1:
         name = sys.argv[1]
     else:
         print("Using standard name: data-[...]")
         name = "data"
+    if len(sys.argv) >2:
+        timeout = int(sys.argv[2])
+    else:
+        timeout = None
+
 
     # curses
-    curses.wrapper(main,name)
+    curses.wrapper(main,name,timeout)
