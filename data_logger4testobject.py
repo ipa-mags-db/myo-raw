@@ -34,7 +34,7 @@ class logger:
             writer.writerow(  ["t","EMG0", "EMG1", "EMG2", "EMG3", "EMG4", "EMG5", "EMG6","EMG7"] )
         with open(self.fileNameAux,'w') as csvfile:
             writer = csv.writer(csvfile,delimiter='\t', quotechar='\'',quoting=csv.QUOTE_MINIMAL)
-            writer.writerow(  ["t","V0", "V1", "V2", "ACCX_EXT", "ACCY_EXT", "ACCZ_EXT","QW_EXT", "QX_EXT", "QY_EXT", "QZ_EXT"] )
+            writer.writerow(  ["t","V0", "V1", "V2", "ACCX_EXT", "ACCY_EXT", "ACCZ_EXT","QX_EXT", "QY_EXT", "QZ_EXT", "QW_EXT"] )
         with open(self.fileNameIMU,'w') as csvfile:
             writer = csv.writer(csvfile,delimiter='\t', quotechar='\'',quoting=csv.QUOTE_MINIMAL)
             writer.writerow(  ["t","QW_IMU", "QX_IMU", "QY_IMU", "QZ_IMU" ,"ACCX", "ACCY", "ACCZ","GX", "GY", "GZ" ] )
